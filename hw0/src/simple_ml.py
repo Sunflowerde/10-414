@@ -48,7 +48,36 @@ def parse_mnist(image_filename, label_filename):
                 for MNIST will contain the values 0-9.
     """
     ### BEGIN YOUR CODE
-    pass
+    # 先处理 image文件
+    with gzip.open(image_filename, "rb") as image_file:
+        # 前 4 个字节为 magic number，直接读掉
+        _ = image_file.read(4)
+        # 然后获得图像数量，行数，列数
+        num_images = int.from_bytes(image_file.read(4), "big")
+        num_rows = int.from_bytes(image_file.read(4), "big")
+        num_cols = int.from_bytes(image_file.read(4), "big")
+        
+        # 然后所有剩余的数据即为图像数据
+        image_data = image_file.read()
+        # 需要用 np.frombuffer 来将二进制文字转化为 np 数组
+        images = np.frombuffer(image_data, dtype = np.uint8)
+        # 然后将数组 reshape
+        images = images.reshape(num_images, num_rows * num_cols)
+        # 改变数据类型
+        images = images.astype(np.float32)
+        # 缩放数据大小为 0-1
+        images = images / 255.0
+    
+    # 再处理 label 文件
+    with gzip.open(label_filename, "rb") as label_file:
+        _ = label_file.read(4)
+        num_labels = int.from_bytes(label_file.read(4), "big")
+        label_data = label_file.read()
+        labels = np.frombuffer(label_data, dtype = np.uint8)
+        # 由于本身就是一维的，它不需要 reshape
+    
+    # 最终返回结果
+    return (images, labels)
     ### END YOUR CODE
 
 
