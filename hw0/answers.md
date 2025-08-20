@@ -23,3 +23,19 @@
 * 2.读取字节：使用 `.read(num_bytes)` 读取指定数量的字节，使用 `int.from_bytes(bytes, "big")` 将读取到的字节串转换为整数，并采用大端序
 * 3.读取数据
 * 4.处理数据，对于图像数据，需要将其 `reshape` 成 （图片数量，784），需要将数据类型从 `uint8` 转为 `float32`；对于标签数据，直接保留即可
+# Question 3: Softmax Loss
+* 为了加快收敛速度，我们采用 SGD，所以第一个维度为 batch_size
+* 对于 Z 的第二个维度，是对所有标签的可能的预测值，还未经 softmax 处理
+* 对于 y，表示 batch_size 里每个图片的真实标签
+* 对于每一个行向量，需要将所有 exp 相加，取 log，再减去所对应的标签索引的值
+* 为了 vectorization，需要将 Z_y 单独成一个列向量
+* 所以需要用到高级索引
+* 语法为 `array[rows, cols]`，先要用 `np.arange(batch_size)` 生成所有行索引，再用 y 直接当作列索引
+```python
+row_index = np.arange(batch_size)
+z_y = Z[row_index, y]
+```
+* 再考虑处理 Z
+* 我们先需要对所有元素取 exp，然后再对行求和，取 log
+* 需要注意维度问题，由于 Z_y 是 (batch_size,)，我们不需要 keepdims，否则会出现行向量与列向量的广播，迅速耗光内存
+* 最后作差再取平均值即可得到最终答案

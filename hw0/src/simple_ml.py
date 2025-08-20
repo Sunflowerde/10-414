@@ -97,7 +97,19 @@ def softmax_loss(Z, y):
         Average softmax loss over the sample.
     """
     ### BEGIN YOUR CODE
-    pass
+    # 先获得 batch_size
+    batch_size = Z.shape[0]
+    # 生成行索引
+    row_index = np.arange(batch_size)
+    # 再生成用于计算 loss 的 z_y
+    Z_y = Z[row_index, y]
+    # 这里处理 Z
+    exp_Z = np.exp(Z)
+    # 注意这里不需要 keepdims = True，否则会出现行向量与列向量的广播耗光内存
+    sum_exp_Z = np.sum(exp_Z, axis = 1)
+    log_Z = np.log(sum_exp_Z)
+    # 注意最后要取平均值
+    return np.mean(log_Z - Z_y)
     ### END YOUR CODE
 
 
